@@ -1,4 +1,4 @@
-use crate::Color;
+use crate::{normalize_rect, Color};
 
 #[derive(Debug, PartialEq)]
 pub struct Canvas {
@@ -31,7 +31,7 @@ impl Canvas {
     }
 
     /// Gets a slice over the raw pixel buffer owned by the canvas
-    pub fn data(&self) -> &[u8] {
+    pub fn get_data(&self) -> &[u8] {
         use std::mem::size_of;
 
         unsafe {
@@ -43,7 +43,7 @@ impl Canvas {
     }
 
     /// Gets a mutable slice over the raw pixel buffer owned by the canvas
-    pub fn data_mut(&mut self) -> &mut [u8] {
+    pub fn get_data_mut(&mut self) -> &mut [u8] {
         use std::mem::size_of;
 
         unsafe {
@@ -52,6 +52,10 @@ impl Canvas {
                 size_of::<u32>() * self.pixels.len(),
             )
         }
+    }
+
+    pub fn in_bounds(&self, x: i32, y: i32) -> bool {
+        x < 0 || x >= self.width as i32 || y < 0 || y >= self.height as i32
     }
 
     /// Performs a bounds check on the coordinates to ensure they are within
@@ -82,8 +86,19 @@ impl Canvas {
     }
 
     #[inline]
-    fn get_index(&self, x: i32, y: i32) -> usize {
+    pub fn get_index(&self, x: i32, y: i32) -> usize {
         self.width * y as usize + x as usize
+    }
+
+    
+    #[inline]
+    pub fn get_pixel(&self, x: i32, y: i32) -> &u32 {
+        &self.pixels[self.width * y as usize + x as usize]
+    }
+
+    #[inline]
+    pub fn get_pixel_mut(&mut self, x: i32, y: i32) -> &mut u32 {
+        &mut self.pixels[self.width * y as usize + x as usize]
     }
 
     #[cfg(feature = "image")]
@@ -94,7 +109,7 @@ impl Canvas {
 
         save_buffer(
             file_path,
-            self.data(),
+            self.get_data(),
             self.get_width() as u32,
             self.get_height() as u32,
             ColorType::Rgba8,
@@ -108,28 +123,26 @@ impl Canvas {
 
         for y in 0..self.height {
             for x in 0..self.width {
-                let index = self.get_index(x as i32, y as i32);
-
-                self.pixels[index] = pixel_color;
+                *self.get_pixel_mut(x as i32, y as i32) = pixel_color;
             }
         }
     }
 
     /// Draws a circle at the provided center with the given radius
     pub fn circle<C: Color>(&mut self, center_x: i32, center_y: i32, radius: i32, color: C) {
-        // TODO: Optimize by first clipping to the canvas and then iterating the bounded rect
         // TODO: Anti-Aliasing
 
         let pixel_color = color.pack();
 
-        // Iterate over the bounding box of the circle
-        for x in center_x - radius..center_x + radius {
-            for y in center_y - radius..center_y + radius {
-                // Don't draw pixels outside the screen
-                if x < 0 || x > self.width as i32 || y < 0 || y > self.height as i32 {
-                    continue;
-                }
+        // Clip the rectangle to the canvas
+        let Some(nr) = normalize_rect(center_x - radius, center_y - radius, radius * 2, radius * 2, self.width as i32, self.height as i32) else {
+            // Nothing to render
+            return;
+        };
 
+        // Iterate over the clipped bounding box of the circle
+        for x in nr.x1..=nr.x2 {
+            for y in nr.y1..=nr.y2 {
                 // Calculate the current point's distance from the center of the circle
                 let dx = center_x - x;
                 let dy = center_y - y;
@@ -137,9 +150,7 @@ impl Canvas {
                 // If the point satisfies the equation for a circle then fill in that
                 // pixel with the provided color
                 if dx * dx + dy * dy < radius * radius {
-                    let index = self.get_index(x, y);
-
-                    self.pixels[index] = pixel_color;
+                    *self.get_pixel_mut(x, y) = pixel_color;
                 }
             }
         }
@@ -153,43 +164,18 @@ impl Canvas {
     /// The same logic follows for height where when height is positive, y will be the
     /// top bound of the rectangle, and when height is negative, y will be the bottom
     /// bound of the rect
-    pub fn rect<C: Color>(
-        &mut self,
-        mut x: i32,
-        mut y: i32,
-        mut width: i32,
-        mut height: i32,
-        color: C,
-    ) {
-        // TODO: Optimize by first clipping to the canvas and then iterating the bounded rect
-
+    pub fn rect<C: Color>(&mut self, x: i32, y: i32, width: i32, height: i32, color: C) {
         let pixel_color = color.pack();
 
-        // If width is negative, flip the sign and move x over so that it is always
-        // the left bound when drawing
-        if width.signum() < 0 {
-            width *= -1;
-            x -= width;
-        }
+        let Some(nr) = normalize_rect(x, y, width, height, self.width as i32, self.height as i32) else {
+            // Nothing to render
+            return;
+        };
 
-        // If height is negative, flip the sign and move y up so that it is always
-        // the top bound when drawing
-        if height.signum() < 0 {
-            height *= -1;
-            y -= height
-        }
-
-        // Iterate through the bounding box of the rect and fill in all the pixels
-        for x in x..x + width {
-            for y in y..y + height {
-                // Don't draw pixels outside the screen
-                if x < 0 || x > self.width as i32 || y < 0 || y > self.height as i32 {
-                    continue;
-                }
-
-                let index = self.get_index(x, y);
-
-                self.pixels[index] = pixel_color;
+        // Iterate through the clipped bounding box of the rect and fill in all the pixels
+        for x in nr.x1..=nr.x2 {
+            for y in nr.y1..=nr.y2 {
+                *self.get_pixel_mut(x, y) = pixel_color;
             }
         }
     }
