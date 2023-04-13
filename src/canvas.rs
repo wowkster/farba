@@ -31,6 +31,16 @@ impl Canvas {
     }
 
     /// Gets a slice over the raw pixel buffer owned by the canvas
+    pub fn get_pixels(&self) -> &[u32] {
+        self.pixels.as_slice()
+    }
+
+    /// Gets a slice over the raw pixel buffer owned by the canvas
+    pub fn get_pixels_mut(&mut self) -> &mut [u32] {
+        self.pixels.as_mut_slice()
+    }
+
+    /// Gets a slice over the raw pixel buffer owned by the canvas but as bytes
     pub fn get_data(&self) -> &[u8] {
         use std::mem::size_of;
 
@@ -42,7 +52,7 @@ impl Canvas {
         }
     }
 
-    /// Gets a mutable slice over the raw pixel buffer owned by the canvas
+    /// Gets a mutable slice over the raw pixel buffer owned by the canvas but as bytes
     pub fn get_data_mut(&mut self) -> &mut [u8] {
         use std::mem::size_of;
 
