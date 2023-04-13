@@ -1,4 +1,6 @@
-use crate::{normalize_rect, normalize_triangle, Color};
+use core::panic;
+
+use crate::{normalize_rect, normalize_triangle, Color, Vec3};
 
 #[derive(Debug, PartialEq)]
 pub struct Canvas {
@@ -222,6 +224,91 @@ impl Canvas {
         for x in nt.left_x..=nt.right_x {
             for y in nt.top_y..=nt.bottom_y {
                 if point_in_bounds(x, y) {
+                    *self.get_pixel_mut(x, y) = pixel_color;
+                }
+            }
+        }
+    }
+
+    /// Draws a triangle with the provided coordinates as vertices
+    ///
+    /// Vertices may be supplied in any order as they are normalized before drawing
+    pub fn triangle_with_depth_buffer<C: Color>(
+        &mut self,
+        v1: Vec3,
+        v2: Vec3,
+        v3: Vec3,
+        color: C,
+        depth_buffer: &mut Vec<f32>,
+    ) {
+        // TODO: Anti-Aliasing
+
+        let pixel_color = color.pack();
+
+        let x1 = v1.x as i32;
+        let y1 = v1.y as i32;
+        let x2 = v2.x as i32;
+        let y2 = v2.y as i32;
+        let x3 = v3.x as i32;
+        let y3 = v3.y as i32;
+
+        let Some(nt) = normalize_triangle(self.width, self.height, x1, y1, x2, y2, x3, y3) else {
+            return;
+        };
+
+        let point_in_bounds = |x: i32, y: i32| {
+            // Check (v1, v2)
+            let z1 = (x2 - x1) * (y - y1) - (y2 - y1) * (x - x1);
+            // Check (v2, v3)
+            let z2 = (x3 - x2) * (y - y2) - (y3 - y2) * (x - x2);
+            // Check (v3, v1)
+            let z3 = (x1 - x3) * (y - y3) - (y1 - y3) * (x - x3);
+
+            z1.signum() >= 0 && z2.signum() >= 0 && z3.signum() >= 0
+        };
+
+        if depth_buffer.len() != self.width * self.height {
+            panic!("Depth buffer was not correct size to match canvas")
+        }
+
+        // Here we calculate the z value of the pixel on the plane defined by the 3 points
+        // Shamelessly stolen from https://math.stackexchange.com/questions/28043/finding-the-z-value-on-a-plane-with-x-y-values
+
+        // Plane has equation rx+sy+tz=k
+        let plane_v1 = v1 - v2;
+        let plane_v2 = v1 - v3;
+
+        // (r, s, t) vector
+        let plane_normal = Vec3::cross(&plane_v1, &plane_v2);
+
+        // Solve for k
+        let k = Vec3::dot(&v1, &plane_normal);
+
+        // Pull out variables
+        let Vec3 { x: r, y: s, z: t } = plane_normal;
+
+        // Closure that computes the z value for each pixel and tells us if we
+        // should draw there based on the depth buffer
+
+        let width = self.width; // Required for borrow checker :/
+
+        let mut pixel_is_nearer = |x: i32, y: i32| {
+            let z = (1.0 / t) * (k - r * x as f32 - s * y as f32);
+
+            let index = width * y as usize + x as usize;
+
+            let should_draw = z < depth_buffer[index];
+
+            if should_draw {
+                depth_buffer[index] = z;
+            }
+
+            should_draw
+        };
+
+        for x in nt.left_x..=nt.right_x {
+            for y in nt.top_y..=nt.bottom_y {
+                if point_in_bounds(x, y) && pixel_is_nearer(x, y) {
                     *self.get_pixel_mut(x, y) = pixel_color;
                 }
             }
