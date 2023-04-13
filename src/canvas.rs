@@ -64,10 +64,8 @@ impl Canvas {
     pub fn set_pixel<C: Color>(&mut self, x: i32, y: i32, color: C) {
         let pixel_color = color.pack();
 
-        let index = self.height as i32 * y + x;
-
-        if index > 0 && index < self.pixels.len() as i32 {
-            self.pixels[index as usize] = pixel_color;
+        if self.in_bounds(x, y) {
+            *self.get_pixel_mut(x, y) = pixel_color;
         }
     }
 
@@ -80,9 +78,7 @@ impl Canvas {
     pub fn set_pixel_unchecked<C: Color>(&mut self, x: i32, y: i32, color: C) {
         let pixel_color = color.pack();
 
-        let index = (self.height as i32 * y + x) as usize;
-
-        self.pixels[index] = pixel_color;
+        *self.get_pixel_mut(x, y) = pixel_color;
     }
 
     #[inline]
@@ -90,15 +86,16 @@ impl Canvas {
         self.width * y as usize + x as usize
     }
 
-    
     #[inline]
     pub fn get_pixel(&self, x: i32, y: i32) -> &u32 {
-        &self.pixels[self.width * y as usize + x as usize]
+        let index = self.get_index(x, y);
+        &self.pixels[index]
     }
 
     #[inline]
     pub fn get_pixel_mut(&mut self, x: i32, y: i32) -> &mut u32 {
-        &mut self.pixels[self.width * y as usize + x as usize]
+        let index = self.get_index(x, y);
+        &mut self.pixels[index]
     }
 
     #[cfg(feature = "image")]
