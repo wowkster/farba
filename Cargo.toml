@@ -2,8 +2,20 @@
 name = "farba"
 version = "0.1.0"
 edition = "2021"
+authors = ["Wowkster"]
+description = "A CPU graphics library written in pure Rust"
+license = "MIT"
+repository = "https://github.com/wowkster/farba"
+categories = ["graphics"]
+keywords = ["farba", "graphics"]
+readme = "README.md"
+include = ["examples/*.rs", "src/"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "farba"
+crate-type = ["lib"]
+
 [features]
 default = ["image"]
 image = ["dep:image"]
@@ -13,3 +25,9 @@ image = { version = "0.24.6", optional = true }
 
 [[example]]
 name = "fill_screen"
+
+[[example]]
+name = "flag_of_japan"
+
+[[example]]
+name = "rectangle"
