@@ -1,6 +1,6 @@
 [package]
 name = "farba"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Wowkster"]
 description = "A CPU graphics library written in pure Rust"
@@ -17,7 +17,7 @@ name = "farba"
 crate-type = ["lib"]
 
 [features]
-default = ["image"]
+default = []
 image = ["dep:image"]
 
 [dependencies]
@@ -25,9 +25,12 @@ image = { version = "0.24.6", optional = true }
 
 [[example]]
 name = "fill_screen"
+required-features = ["image"]
 
 [[example]]
 name = "flag_of_japan"
+required-features = ["image"]
 
 [[example]]
 name = "rectangle"
+required-features = ["image"]
