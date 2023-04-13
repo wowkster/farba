@@ -9,7 +9,7 @@ repository = "https://github.com/wowkster/farba"
 categories = ["graphics"]
 keywords = ["farba", "graphics"]
 readme = "README.md"
-include = ["examples/*.rs", "src/"]
+include = ["assets/", "examples/*.rs", "src/"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
