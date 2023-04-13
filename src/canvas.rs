@@ -1,4 +1,4 @@
-use crate::{normalize_rect, Color};
+use crate::{normalize_rect, normalize_triangle, Color};
 
 #[derive(Debug, PartialEq)]
 pub struct Canvas {
@@ -173,6 +173,47 @@ impl Canvas {
         for x in nr.x1..=nr.x2 {
             for y in nr.y1..=nr.y2 {
                 *self.get_pixel_mut(x, y) = pixel_color;
+            }
+        }
+    }
+
+    /// Draws a triangle with the provided coordinates as vertices
+    ///
+    /// Vertices may be supplied in any order as they are normalized before drawing
+    pub fn triangle<C: Color>(
+        &mut self,
+        x1: i32,
+        y1: i32,
+        x2: i32,
+        y2: i32,
+        x3: i32,
+        y3: i32,
+        color: C,
+    ) {
+        // TODO: Anti-Aliasing
+
+        let pixel_color = color.pack();
+
+        let Some(nt) = normalize_triangle(self.width, self.height, x1, y1, x2, y2, x3, y3) else {
+            return;
+        };
+
+        let point_in_bounds = |x: i32, y: i32| {
+            // Check (v1, v2)
+            let z1 = (x2 - x1) * (y - y1) - (y2 - y1) * (x - x1);
+            // Check (v2, v3)
+            let z2 = (x3 - x2) * (y - y2) - (y3 - y2) * (x - x2);
+            // Check (v3, v1)
+            let z3 = (x1 - x3) * (y - y3) - (y1 - y3) * (x - x3);
+
+            z1.signum() >= 0 && z2.signum() >= 0 && z3.signum() >= 0
+        };
+
+        for x in nt.left_x..=nt.right_x {
+            for y in nt.top_y..=nt.bottom_y {
+                if point_in_bounds(x, y) {
+                    *self.get_pixel_mut(x, y) = pixel_color;
+                }
             }
         }
     }

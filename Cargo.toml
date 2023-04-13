@@ -34,3 +34,7 @@ required-features = ["image"]
 [[example]]
 name = "rectangle"
 required-features = ["image"]
+
+[[example]]
+name = "triangle"
+required-features = ["image"]

@@ -1,4 +1,3 @@
-
 #[derive(Debug, Default)]
 pub struct NormalizedRect {
     pub x1: i32,
@@ -100,4 +99,92 @@ pub fn normalize_rect(
     }
 
     return Some(nr);
+}
+
+#[derive(Debug, Default)]
+pub struct NormalizedTriangle {
+    pub left_x: i32,
+    pub right_x: i32,
+    pub top_y: i32,
+    pub bottom_y: i32,
+}
+
+/// The point of this function is to produce two ranges `left_x..=right_x` and
+///  `top_y..=bottom_y` that are guaranteed to be safe to iterate over the
+/// canvas of size `width` by `height` without any boundary checks.
+pub fn normalize_triangle(
+    width: usize,
+    height: usize,
+    x1: i32,
+    y1: i32,
+    x2: i32,
+    y2: i32,
+    x3: i32,
+    y3: i32,
+) -> Option<NormalizedTriangle> {
+    let mut nt = NormalizedTriangle::default();
+
+    // Normalize the x bounds of the triangle
+    nt.left_x = x1;
+    nt.right_x = x1;
+
+    if nt.left_x > x2 {
+        nt.left_x = x2;
+    }
+    if nt.left_x > x3 {
+        nt.left_x = x3;
+    }
+    if nt.right_x < x2 {
+        nt.right_x = x2;
+    }
+    if nt.right_x < x3 {
+        nt.right_x = x3;
+    }
+
+    // Clamp x bounds to canvas
+    if nt.left_x < 0 {
+        nt.left_x = 0;
+    }
+    if nt.left_x as usize >= width {
+        return None;
+    }
+    if nt.right_x < 0 {
+        return None;
+    }
+    if nt.right_x as usize >= width {
+        nt.right_x = (width - 1) as i32;
+    }
+
+    // Normalize the y bounds of the triangle
+    nt.top_y = y1;
+    nt.bottom_y = y1;
+
+    if nt.top_y > y2 {
+        nt.top_y = y2;
+    }
+    if nt.top_y > y3 {
+        nt.top_y = y3;
+    }
+    if nt.bottom_y < y2 {
+        nt.bottom_y = y2;
+    }
+    if nt.bottom_y < y3 {
+        nt.bottom_y = y3;
+    }
+
+    // Clamp y bounds to canvas
+    if nt.top_y < 0 {
+        nt.top_y = 0;
+    }
+    if nt.top_y as usize >= height {
+        return None;
+    }
+    if nt.bottom_y < 0 {
+        return None;
+    }
+    if nt.bottom_y as usize >= height {
+        nt.bottom_y = (height - 1) as i32
+    }
+
+    Some(nt)
 }
