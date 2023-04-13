@@ -93,9 +93,14 @@ pub struct RGBAColor {
 impl RGBAColor {
     pub const WHITE: RGBAColor = RGBAColor::from_rgb(255, 255, 255);
     pub const BLACK: RGBAColor = RGBAColor::from_rgb(0, 0, 0);
+
     pub const RED: RGBAColor = RGBAColor::from_rgb(255, 0, 0);
     pub const GREEN: RGBAColor = RGBAColor::from_rgb(0, 255, 0);
     pub const BLUE: RGBAColor = RGBAColor::from_rgb(0, 0, 255);
+
+    pub const MAGENTA: RGBAColor = RGBAColor::from_rgb(255, 0, 255);
+    pub const YELLOW: RGBAColor = RGBAColor::from_rgb(255, 255, 0);
+    pub const CYAN: RGBAColor = RGBAColor::from_rgb(0, 255, 255);
 
     pub const fn from_rgb(r: u8, g: u8, b: u8) -> Self {
         Self {
