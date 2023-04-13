@@ -36,7 +36,7 @@ fn main() {
 fn render_frame_sequence(mut canvas: Canvas, mut model: Model, camera: Camera) {
     std::fs::create_dir_all("./examples/3d_cube").expect("Could not create directory");
 
-    for t in 0..60 {
+    for t in 0..180 {
         render_frame(t as f32, &mut canvas, &mut model, &camera);
 
         canvas.save_to_file(&format!("./examples/3d_cube/{t}.png"));
