@@ -2,6 +2,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/farba)](https://crates.io/crates/farba)
 ![GitHub](https://img.shields.io/github/license/wowkster/farba?color=blue)
+[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fwowkster%2Ffarba%2Fbadge%3Fref%3Dmaster&style=flat)](https://actions-badge.atrox.dev/wowkster/farba/goto?ref=master)
 
 A CPU graphics library written in pure Rust
 
