@@ -1,3 +1,5 @@
+use crate::Vec3;
+
 /// Macro to pack RGBA values into a u32
 #[macro_export]
 macro_rules! rgba {
@@ -118,6 +120,18 @@ impl RGBAColor {
             blue: b,
             alpha: a,
         }
+    }
+}
+
+impl From<Vec3> for RGBAColor {
+    fn from(value: Vec3) -> Self {
+        Self::from_rgb(value.x as u8, value.y as u8, value.z as u8)
+    }
+}
+
+impl From<RGBAColor> for Vec3 {
+    fn from(value: RGBAColor) -> Self {
+        Vec3::new(value.red as f32, value.green as f32, value.blue as f32)
     }
 }
 
