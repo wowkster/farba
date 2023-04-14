@@ -25,6 +25,20 @@ impl Vec3 {
             self.x * other.y - self.y * other.x,
         )
     }
+
+    pub fn magnitude_squared(&self) -> f32 {
+        self.x * self.x + self.y + self.y * self.z * self.z
+    }
+
+    pub fn magnitude(&self) -> f32 {
+        self.magnitude_squared().sqrt()
+    }
+
+    pub fn normalize(&self) -> Vec3 {
+        let mag = self.magnitude();
+
+        Vec3::new(self.x / mag, self.y / mag, self.z / mag)
+    }
 }
 
 impl std::ops::Add<Vec3> for Vec3 {
