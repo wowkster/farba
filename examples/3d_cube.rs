@@ -279,7 +279,7 @@ fn transform_and_project(model: &Model, camera: &Camera) -> Vec<Triangle3d> {
     // Convert triangles to world space
     triangles.iter_mut().for_each(|triangle| {
         // Rotate the normal vector
-        // triangle.normal = rotation_matrix * triangle.normal;
+        triangle.normal = rotation_matrix * triangle.normal;
 
         // Apply transformations to the vertices
         triangle.vertices.iter_mut().for_each(|vertex| {
