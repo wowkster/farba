@@ -251,3 +251,64 @@ impl std::ops::Mul<Mat3> for Mat3 {
         )
     }
 }
+
+/* ==== Math Helpers */
+
+// https://www.desmos.com/calculator/s2gr8e2ajh
+pub mod interpolation {
+    pub fn lerp(t: f32, a: f32, b: f32) -> f32 {
+        a * (1.0 - t) + b * t
+    }
+    
+    pub fn bilinear(t: f32, a: f32, b: f32, c: f32, d: f32) -> f32 {
+        let lerp_ab = lerp(t, a, b);
+        let lerp_cd = lerp(t, c, d);
+    
+        lerp(t, lerp_ab, lerp_cd)
+    }
+    
+    pub fn cosine(t: f32, a: f32, b: f32) -> f32 {
+        use std::f32::consts::PI;
+    
+        // -cos(t * pi) / 2 + 0.5
+        lerp(-f32::cos(t * PI) / 2.0 + 0.5, a, b)
+    }
+
+    /// Approximates the value of `cosine` very closely using a second degree
+    /// taylor polynomial (no more than ~1% error in `[0,1]`)
+    pub fn sooth_step(t: f32, a: f32, b: f32) -> f32 {
+        lerp(t * t * (3.0 - 2.0 * t), a, b)
+    }
+    
+    pub fn acceleration(t: f32, a: f32, b: f32) -> f32 {
+        lerp(t * t, a, b)
+    }
+
+    pub fn deceleration(t: f32, a: f32, b: f32) -> f32 {
+        lerp(1.0 - (1.0 - t) * (1.0 - t), a, b)
+    }
+
+    pub fn step(t: f32, a: f32, b: f32) -> f32 {
+        if t < 0.5 {
+            a
+        } else {
+            b
+        }
+    }
+
+    pub fn multi_step(t: f32, a: f32, b: f32, step_count: usize) -> f32 {
+        let step_size = 1.0 / step_count as f32;
+
+        let mut step_frame = 0.0;
+
+        while step_frame < 1.0 {
+            if t <= step_frame {
+                return lerp(step_frame, a, b);
+            }
+
+            step_frame += step_size;
+        }
+
+        b
+    }
+}
